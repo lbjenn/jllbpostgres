@@ -1,0 +1,66 @@
+##########           LIQUIBASE FLOWFILE                ##########
+##########  learn more http://docs.liquibase.com/flow  ##########
+
+stages:
+
+  ## The first stage of actions
+  Default:
+    actions:
+      #
+      # status for target changelog
+      #
+      - type: liquibase
+        command: status
+      #
+      # Quality Checks config
+      #
+      - type: liquibase
+        command: checks config
+      #
+      # Quality Checks for changelog
+      #
+      - type: liquibase
+        command: checks run
+        cmdArgs: { checks-scope: changelog,  changeset-filter: pending, checks-output: ISSUES, reports-enabled: true, report-name: "qc_cars_run_report.html" }
+      #
+      # Review pending changes 
+      #
+      - type: liquibase
+        command: updateSQL
+      
+      # Tag the database
+      #
+      - type: liquibase
+        command: tag
+        cmdArgs: { tag: "${LIQUIBASE_COMMAND_TAG}" }
+      #
+      # Update the database
+      #
+      - type: liquibase
+        command: update
+      #
+      # Validate rollback 
+      #
+      - type: liquibase
+        command: rollbackSQL
+      #
+      #
+      # Execute rollback
+      #
+      - type: liquibase
+        command: rollback
+        cmdArgs: { tag: "${LIQUIBASE_COMMAND_TAG}",reports-enabled: true, report-name: "update-cars-rollback.html" }
+      #
+      # Update the database
+      #
+      - type: liquibase
+        command: update
+        cmdArgs: {reports-enabled: true, report-name: "update-cars-postgres-report.html"}
+
+## do these actions after all flow commands, regardless of whether the above commands were successful
+endStage:
+  actions:
+    - type: liquibase
+      command: history
+
+
